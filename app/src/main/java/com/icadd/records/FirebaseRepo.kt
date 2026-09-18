@@ -29,7 +29,8 @@ object FirebaseRepo {
     // After that, an admin must first add a placeholder record (Employees screen)
     // with the person's email; only then can that email complete registration
     // (which just attaches a password to the pre-approved record).
-    suspend fun register(email: String, password: String, name: String): Result<Unit> = try {
+    suspend fun register(email: String, password: String, name: String): Result<Unit> {
+      return try {
         val cleanEmail = email.trim().lowercase()
         val docId = keyFor(cleanEmail)
         val usersSnap = db.collection("users").limit(1).get().await()
@@ -59,8 +60,9 @@ object FirebaseRepo {
             db.collection("users").document(docId).update("name", name).await()
         }
         Result.success(Unit)
-    } catch (e: Exception) {
+      } catch (e: Exception) {
         Result.failure(e)
+      }
     }
 
     suspend fun login(email: String, password: String): Result<Unit> = try {
