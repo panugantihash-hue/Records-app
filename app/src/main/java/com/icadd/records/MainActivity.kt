@@ -67,6 +67,7 @@ fun RootApp(vm: AppViewModel) {
 
 private data class Tab(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun AppShell(vm: AppViewModel, onLogout: () -> Unit) {
     val nav = rememberNavController()
