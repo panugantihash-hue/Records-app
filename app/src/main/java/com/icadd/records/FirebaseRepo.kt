@@ -150,6 +150,52 @@ object FirebaseRepo {
         return ref.downloadUrl.await().toString()
     }
 
+    // ---------- Central storage (folders + files) ----------
+    // Firebase Storage has no real folders, only path prefixes. A folder "exists"
+    // once anything is uploaded under its path; we create empty folders with a
+    // hidden .keep placeholder file.
+
+    data class StorageEntry(val name: String, val path: String, val isFolder: Boolean, val downloadUrl: String = "")
+
+    suspend fun listStorage(path: String): List<StorageEntry> {
+        val ref = if (path.isBlank()) storage.reference.child("central") else storage.reference.child("central/$path")
+        val result = ref.listAll().await()
+        val folders = result.prefixes.map { StorageEntry(it.name, it.path.removePrefix("central/"), true) }
+        val files = result.items.filter { it.name != ".keep" }.map {
+            StorageEntry(it.name, it.path.removePrefix("central/"), false)
+        }
+        return folders.sortedBy { it.name } + files.sortedBy { it.name }
+    }
+
+    suspend fun createStorageFolder(parentPath: String, folderName: String) {
+        val path = if (parentPath.isBlank()) folderName else "$parentPath/$folderName"
+        val ref = storage.reference.child("central/$path/.keep")
+        ref.putBytes(ByteArray(0)).await()
+    }
+
+    suspend fun uploadStorageFile(parentPath: String, fileName: String, bytes: ByteArray): String {
+        val path = if (parentPath.isBlank()) fileName else "$parentPath/$fileName"
+        val ref = storage.reference.child("central/$path")
+        ref.putBytes(bytes).await()
+        return ref.downloadUrl.await().toString()
+    }
+
+    suspend fun getDownloadUrl(path: String): String =
+        storage.reference.child("central/$path").downloadUrl.await().toString()
+
+    suspend fun searchStorageAll(query: String, path: String = ""): List<StorageEntry> {
+        val results = mutableListOf<StorageEntry>()
+        val ref = if (path.isBlank()) storage.reference.child("central") else storage.reference.child("central/$path")
+        val result = ref.listAll().await()
+        result.items.filter { it.name != ".keep" && it.name.contains(query, ignoreCase = true) }.forEach {
+            results.add(StorageEntry(it.name, it.path.removePrefix("central/"), false))
+        }
+        result.prefixes.forEach { prefix ->
+            results.addAll(searchStorageAll(query, prefix.path.removePrefix("central/")))
+        }
+        return results
+    }
+
     // ---------- generic real-time collection listener ----------
 
     private inline fun <reified T> collectionFlow(
