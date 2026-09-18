@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "416101547164",
+    "project_id": "isd1-records",
+    "storage_bucket": "isd1-records.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416101547164:android:2f4bb502de8f26b7080159",
+        "android_client_info": {
+          "package_name": "com.icadd.records"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1I22KNuGZ9pYx2Npc4btpmhlLgAUjHXE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
