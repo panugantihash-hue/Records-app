@@ -183,6 +183,19 @@ object FirebaseRepo {
     suspend fun getDownloadUrl(path: String): String =
         storage.reference.child("central/$path").downloadUrl.await().toString()
 
+    /** Flat list of every folder path in Central Storage, for "target folder" dropdowns. */
+    suspend fun listAllFolders(path: String = ""): List<String> {
+        val results = mutableListOf<String>()
+        val ref = if (path.isBlank()) storage.reference.child("central") else storage.reference.child("central/$path")
+        val result = ref.listAll().await()
+        result.prefixes.forEach { prefix ->
+            val folderPath = prefix.path.removePrefix("central/")
+            results.add(folderPath)
+            results.addAll(listAllFolders(folderPath))
+        }
+        return results
+    }
+
     suspend fun searchStorageAll(query: String, path: String = ""): List<StorageEntry> {
         val results = mutableListOf<StorageEntry>()
         val ref = if (path.isBlank()) storage.reference.child("central") else storage.reference.child("central/$path")
